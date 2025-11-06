@@ -3,59 +3,122 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Знайомства у місті</title>
+  <title>Анонімні знайомства</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    textarea { width: 100%; height: 100px; margin: 10px 0; }
-    button { padding: 10px 20px; background: #0088cc; color: white; border: none; border-radius: 5px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      margin-top: 0;
+      color: #0088cc;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      margin: 10px 0;
+      resize: vertical;
+    }
+    button {
+      padding: 12px 24px;
+      background: #0088cc;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #ccc;
+    }
+    #status {
+      margin-top: 10px;
+      min-height: 24px;
+      font-weight: bold;
+    }
+    .success { color: #2e8b57; }
+    .error { color: #c0392b; }
   </style>
 </head>
 <body>
-  <h2>Анонімне оголошення</h2>
-  <p>Напиши коротко про себе та кого шукаєш (макс. 500 символів):</p>
-  <textarea id="postText" placeholder="Наприклад: Дівчина, 24 роки, люблю каву та прогулянки у парку..."></textarea>
-  <br>
-  <button onclick="submitPost()">Надіслати</button>
-  <p id="status"></p>
+  <div class="container">
+    <h2>📩 Надіслати анонімне оголошення</h2>
+    <p>Напиши коротко про себе та кого шукаєш (від 10 до 500 символів):</p>
+    <textarea id="postText" placeholder="Наприклад: Хлопець, 25 років, люблю кіно та прогулянки у Львові..."></textarea>
+    <br>
+    <button onclick="submitPost()" id="submitBtn">Надіслати</button>
+    <div id="status"></div>
+  </div>
 
   <script>
     const WebApp = window.Telegram.WebApp;
     WebApp.ready();
+    WebApp.expand();
 
     async function submitPost() {
       const text = document.getElementById('postText').value.trim();
       const statusEl = document.getElementById('status');
+      const btn = document.getElementById('submitBtn');
 
-      if (!text || text.length < 10) {
-        statusEl.innerText = 'Текст занадто короткий!';
+      if (text.length < 10) {
+        statusEl.className = 'error';
+        statusEl.innerText = 'Текст має бути не менше 10 символів.';
         return;
       }
       if (text.length > 500) {
-        statusEl.innerText = 'Максимум 500 символів!';
+        statusEl.className = 'error';
+        statusEl.innerText = 'Текст занадто довгий (макс. 500 символів).';
         return;
       }
 
-      statusEl.innerText = 'Надсилаємо...';
-
-      // Отримуємо user ID з Telegram WebApp
       const userId = WebApp.initDataUnsafe?.user?.id;
       if (!userId) {
-        statusEl.innerText = 'Помилка: не вдалося отримати ваш ID';
+        statusEl.className = 'error';
+        statusEl.innerText = 'Не вдалося отримати ваш ID. Спробуйте оновити Telegram.';
         return;
       }
 
-      // Надсилаємо в Google Apps Script
-      const response = await fetch('https://script.google.com/macros/s/AKfycbySRpXl7LWrsyeJEQEQ4P0UQ4vLlR4_o-i4atm-xYA7mbAaJCOprOzigeDTAWfiUFAP/exec', {
-        method: 'POST',
-        mode: 'no-cors', // важливо для Google Apps Script
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `user_id=${userId}&text=${encodeURIComponent(text)}`
-      });
+      btn.disabled = true;
+      statusEl.className = '';
+      statusEl.innerText = 'Надсилаємо...';
 
-      // Через no-cors ми не бачимо відповідь, тому вважаємо успіх
-      statusEl.innerText = '✅ Надіслано! Оголошення з’явиться в каналі найближчим часом.';
-      document.getElementById('postText').value = '';
+      // 🔁 Надсилаємо в Google Apps Script
+      const scriptUrl = 'https://script.google.com/macros/s/AKfycbySRpXl7LWrsyeJEQEQ4P0UQ4vLlR4_o-i4atm-xYA7mbAaJCOprOzigeDTAWfiUFAP/exec';
+
+      try {
+        // Через обмеження CORS використовуємо no-cors (дані йдуть, але відповідь не читається)
+        await fetch(scriptUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `user_id=${encodeURIComponent(userId)}&text=${encodeURIComponent(text)}`
+        });
+
+        // Вважаємо успіх (бо ніякої помилки не було)
+        statusEl.className = 'success';
+        statusEl.innerText = '✅ Оголошення надіслано! Воно з’явиться в каналі найближчим часом.';
+        document.getElementById('postText').value = '';
+      } catch (e) {
+        statusEl.className = 'error';
+        statusEl.innerText = 'Помилка під час надсилання. Спробуйте ще раз.';
+      } finally {
+        btn.disabled = false;
+      }
     }
   </script>
 </body>
