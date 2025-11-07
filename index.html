@@ -23,16 +23,24 @@
     h2, h3 {
       color: #0088cc;
     }
-    textarea, input {
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+    textarea, input, select {
       width: 100%;
       padding: 10px;
       border: 1px solid #ddd;
       border-radius: 8px;
       font-size: 16px;
-      margin: 10px 0;
+      margin: 8px 0 4px;
+    }
+    select[multiple] {
+      height: 100px;
     }
     textarea {
-      height: 120px;
+      height: 100px;
       resize: vertical;
     }
     button {
@@ -43,11 +51,12 @@
       border-radius: 8px;
       font-size: 16px;
       cursor: pointer;
+      margin-top: 10px;
     }
     button:disabled {
       background: #ccc;
     }
-    #status, #replyStatus {
+    .status {
       margin-top: 10px;
       min-height: 24px;
       font-weight: bold;
@@ -59,26 +68,67 @@
       padding: 2px 6px;
       border-radius: 4px;
     }
+    .form-section {
+      display: none;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 12px;
+      margin-top: 15px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>📩 Надіслати анонімне оголошення</h2>
-    <p>Напиши коротко про себе та кого шукаєш (від 10 до 500 символів):</p>
-    <textarea id="postText" placeholder="Наприклад: Хлопець, 25 років, люблю кіно та прогулянки у Львові..."></textarea>
-    <br>
-    <button onclick="submitPost()" id="submitBtn">Надіслати</button>
-    <div id="status"></div>
+    <h2>🔐 Анонімні знайомства</h2>
+    <p>Оберіть дію:</p>
 
-    <!-- Форма для відгуку -->
-    <div style="margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 12px;">
-      <h3>💬 Відгукнутися на оголошення</h3>
-      <p>Знайди ID оголошення в каналі (наприклад: <code>5NOD</code>) і напиши автору анонімно:</p>
-      <input type="text" id="postId" placeholder="ID оголошення (наприклад: 5NOD)">
-      <textarea id="replyText" placeholder="Твій текст повідомлення..."></textarea>
-      <br>
+    <button onclick="showForm('post')" style="width:48%">📝 Подати оголошення</button>
+    <button onclick="showForm('reply')" style="width:48%">💬 Відповісти</button>
+
+    <!-- Форма подачі -->
+    <div id="postForm" class="form-section">
+      <label>Ім'я <span style="color:red">*</span></label>
+      <input type="text" id="userName" placeholder="Наприклад: Олена">
+
+      <label>Вік <span style="color:red">*</span></label>
+      <input type="number" id="userAge" min="18" max="99" placeholder="Від 18 до 99">
+
+      <label>Оголошення <span style="color:red">*</span></label>
+      <textarea id="postText" placeholder="Наприклад: Хлопець, 25 років, люблю кіно та прогулянки у Львові..."></textarea>
+
+      <label>Хто цікавить <span style="color:red">*</span></label>
+      <select id="interestedIn">
+        <option value="">Оберіть...</option>
+        <option value="male">Чоловік</option>
+        <option value="female">Жінка</option>
+        <option value="couple">Пара</option>
+        <option value="any">Без різниці</option>
+      </select>
+
+      <label>Який вік цікавить <span style="color:red">*</span></label>
+      <select id="ageRange" multiple>
+        <option value="18-22">18–22</option>
+        <option value="23-30">23–30</option>
+        <option value="31-40">31–40</option>
+        <option value="41-50">41–50</option>
+        <option value="50+">50+</option>
+      </select>
+
+      <label>Фото (опціонально)</label>
+      <input type="file" id="photoUpload" accept="image/*">
+
+      <button onclick="submitPost()" id="submitBtn">Надіслати оголошення</button>
+      <div id="postStatus" class="status"></div>
+    </div>
+
+    <!-- Форма відповіді -->
+    <div id="replyForm" class="form-section">
+      <h3>💬 Відповісти на оголошення</h3>
+      <p>Введіть ID оголошення (наприклад: <code>5NOD</code>):</p>
+      <input type="text" id="postId" placeholder="ID оголошення">
+      <textarea id="replyText" placeholder="Ваше повідомлення автору..."></textarea>
       <button onclick="submitReply()" id="submitReplyBtn">Надіслати відгук</button>
-      <div id="replyStatus"></div>
+      <div id="replyStatus" class="status"></div>
     </div>
   </div>
 
@@ -89,19 +139,39 @@
 
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzme9bv5wLH9fPp091ou9JSs81ybQbfcMV4psC0nod4HngiMN4LXIotTbokJqIF97hw/exec';
 
+    function showForm(type) {
+      document.getElementById('postForm').style.display = type === 'post' ? 'block' : 'none';
+      document.getElementById('replyForm').style.display = type === 'reply' ? 'block' : 'none';
+    }
+
+    // Автоматичне заповнення ID, якщо Mini App відкрито з startapp=ID
+    const urlParams = new URLSearchParams(window.location.search);
+    const startAppId = urlParams.get('startapp');
+    if (startAppId) {
+      showForm('reply');
+      document.getElementById('postId').value = startAppId.trim();
+      document.getElementById('replyText').focus();
+    }
+
     async function submitPost() {
+      const name = document.getElementById('userName').value.trim();
+      const age = document.getElementById('userAge').value.trim();
       const text = document.getElementById('postText').value.trim();
-      const statusEl = document.getElementById('status');
+      const interestedIn = document.getElementById('interestedIn').value;
+      const ageRange = Array.from(document.getElementById('ageRange').selectedOptions)
+                            .map(opt => opt.value).join(', ');
+      const photoInput = document.getElementById('photoUpload');
+      const statusEl = document.getElementById('postStatus');
       const btn = document.getElementById('submitBtn');
 
-      if (text.length < 10) {
+      if (!name || !age || !text || !interestedIn || !ageRange) {
         statusEl.className = 'error';
-        statusEl.innerText = 'Текст має бути не менше 10 символів.';
+        statusEl.innerText = 'Заповніть усі обов’язкові поля.';
         return;
       }
-      if (text.length > 500) {
+      if (text.length < 10 || text.length > 500) {
         statusEl.className = 'error';
-        statusEl.innerText = 'Текст занадто довгий (макс. 500 символів).';
+        statusEl.innerText = 'Текст: 10–500 символів.';
         return;
       }
 
@@ -115,16 +185,43 @@
       btn.disabled = true;
       statusEl.innerText = 'Надсилаємо...';
 
-      const url = `${SCRIPT_URL}?action=post&user_id=${encodeURIComponent(userId)}&text=${encodeURIComponent(text)}`;
+      const formData = new FormData();
+      formData.append('action', 'post');
+      formData.append('user_id', userId);
+      formData.append('name', name);
+      formData.append('age', age);
+      formData.append('text', text);
+      formData.append('interested_in', interestedIn);
+      formData.append('age_range', ageRange);
 
+      if (photoInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          formData.append('photo_base64', reader.result.split(',')[1]);
+          sendPost(formData, statusEl, btn);
+        };
+        reader.readAsDataURL(photoInput.files[0]);
+      } else {
+        sendPost(formData, statusEl, btn);
+      }
+    }
+
+    async function sendPost(formData, statusEl, btn) {
       try {
-        await fetch(url);
-        statusEl.className = 'success';
-        statusEl.innerText = '✅ Оголошення надіслано!';
-        document.getElementById('postText').value = '';
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: formData
+        });
+        const text = await response.text();
+        if (text.includes('OK')) {
+          statusEl.className = 'success';
+          statusEl.innerText = '✅ Оголошення надіслано!';
+        } else {
+          throw new Error(text);
+        }
       } catch (e) {
         statusEl.className = 'error';
-        statusEl.innerText = 'Помилка під час надсилання.';
+        statusEl.innerText = 'Помилка: ' + (e.message || 'невідома');
       } finally {
         btn.disabled = false;
       }
@@ -136,14 +233,9 @@
       const statusEl = document.getElementById('replyStatus');
       const btn = document.getElementById('submitReplyBtn');
 
-      if (!postId || !text) {
+      if (!postId || !text || text.length > 500) {
         statusEl.className = 'error';
-        statusEl.innerText = 'Заповніть обидва поля.';
-        return;
-      }
-      if (text.length > 500) {
-        statusEl.className = 'error';
-        statusEl.innerText = 'Повідомлення занадто довге.';
+        statusEl.innerText = 'Заповніть обидва поля (до 500 символів).';
         return;
       }
 
@@ -157,17 +249,21 @@
       btn.disabled = true;
       statusEl.innerText = 'Надсилаємо...';
 
-      const url = `${SCRIPT_URL}?action=reply&user_id=${encodeURIComponent(userId)}&post_id=${encodeURIComponent(postId)}&reply_text=${encodeURIComponent(text)}`;
-
       try {
-        await fetch(url);
-        statusEl.className = 'success';
-        statusEl.innerText = '✅ Відгук надіслано!';
-        document.getElementById('postId').value = '';
-        document.getElementById('replyText').value = '';
+        const url = `${SCRIPT_URL}?action=reply&user_id=${encodeURIComponent(userId)}&post_id=${encodeURIComponent(postId)}&reply_text=${encodeURIComponent(text)}`;
+        const response = await fetch(url);
+        const text = await response.text();
+        if (text.includes('OK')) {
+          statusEl.className = 'success';
+          statusEl.innerText = '✅ Відгук надіслано!';
+          document.getElementById('postId').value = '';
+          document.getElementById('replyText').value = '';
+        } else {
+          throw new Error(text);
+        }
       } catch (e) {
         statusEl.className = 'error';
-        statusEl.innerText = 'Помилка при надсиланні.';
+        statusEl.innerText = 'Помилка: ' + (e.message || 'невідома');
       } finally {
         btn.disabled = false;
       }
