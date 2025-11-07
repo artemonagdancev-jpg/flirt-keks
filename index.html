@@ -89,9 +89,6 @@
 
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzme9bv5wLH9fPp091ou9JSs81ybQbfcMV4psC0nod4HngiMN4LXIotTbokJqIF97hw/exec';
 
-    // ————————————————————
-    // Надсилання оголошення
-    // ————————————————————
     async function submitPost() {
       const text = document.getElementById('postText').value.trim();
       const statusEl = document.getElementById('status');
@@ -111,23 +108,19 @@
       const userId = WebApp.initDataUnsafe?.user?.id;
       if (!userId) {
         statusEl.className = 'error';
-        statusEl.innerText = 'Не вдалося отримати ваш ID. Спробуйте оновити Telegram.';
+        statusEl.innerText = 'Не вдалося отримати ваш ID.';
         return;
       }
 
       btn.disabled = true;
-      statusEl.className = '';
       statusEl.innerText = 'Надсилаємо...';
 
+      const url = `${SCRIPT_URL}?action=post&user_id=${encodeURIComponent(userId)}&text=${encodeURIComponent(text)}`;
+
       try {
-        await fetch(SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: `user_id=${encodeURIComponent(userId)}&text=${encodeURIComponent(text)}`
-        });
+        await fetch(url);
         statusEl.className = 'success';
-        statusEl.innerText = '✅ Оголошення надіслано! Воно з’явиться в каналі найближчим часом.';
+        statusEl.innerText = '✅ Оголошення надіслано!';
         document.getElementById('postText').value = '';
       } catch (e) {
         statusEl.className = 'error';
@@ -137,9 +130,6 @@
       }
     }
 
-    // ————————————————————
-    // Надсилання відгуку
-    // ————————————————————
     async function submitReply() {
       const postId = document.getElementById('postId').value.trim();
       const text = document.getElementById('replyText').value.trim();
@@ -153,7 +143,7 @@
       }
       if (text.length > 500) {
         statusEl.className = 'error';
-        statusEl.innerText = 'Повідомлення занадто довге (макс. 500 символів).';
+        statusEl.innerText = 'Повідомлення занадто довге.';
         return;
       }
 
@@ -165,18 +155,14 @@
       }
 
       btn.disabled = true;
-      statusEl.className = '';
       statusEl.innerText = 'Надсилаємо...';
 
+      const url = `${SCRIPT_URL}?action=reply&user_id=${encodeURIComponent(userId)}&post_id=${encodeURIComponent(postId)}&reply_text=${encodeURIComponent(text)}`;
+
       try {
-        await fetch(SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: `user_id=${encodeURIComponent(userId)}&post_id=${encodeURIComponent(postId)}&reply_text=${encodeURIComponent(text)}`
-        });
+        await fetch(url);
         statusEl.className = 'success';
-        statusEl.innerText = '✅ Відгук надіслано! Автор отримає його анонімно.';
+        statusEl.innerText = '✅ Відгук надіслано!';
         document.getElementById('postId').value = '';
         document.getElementById('replyText').value = '';
       } catch (e) {
