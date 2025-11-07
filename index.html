@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Анонімні знайомства</title>
+  <title>Flirt Keks</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
@@ -21,7 +21,7 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     h2, h3 {
-      color: #0088cc;
+      color: #e74c3c;
     }
     label {
       display: block;
@@ -45,7 +45,7 @@
     }
     button {
       padding: 12px 24px;
-      background: #0088cc;
+      background: #e74c3c;
       color: white;
       border: none;
       border-radius: 8px;
@@ -54,19 +54,7 @@
       margin-top: 10px;
     }
     button:disabled {
-      background: #ccc;
-    }
-    .status {
-      margin-top: 10px;
-      min-height: 24px;
-      font-weight: bold;
-    }
-    .success { color: #2e8b57; }
-    .error { color: #c0392b; }
-    code {
-      background: #f0f0f0;
-      padding: 2px 6px;
-      border-radius: 4px;
+      background: #bdc3c7;
     }
     .form-section {
       display: none;
@@ -75,29 +63,40 @@
       border-radius: 12px;
       margin-top: 15px;
     }
+    .status {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .success { color: #27ae60; }
+    .error { color: #c0392b; }
+    code {
+      background: #ecf0f1;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>🔐 Анонімні знайомства</h2>
+    <h2>🔐 Flirt Keks</h2>
     <p>Оберіть дію:</p>
 
     <button onclick="showForm('post')" style="width:48%">📝 Подати оголошення</button>
     <button onclick="showForm('reply')" style="width:48%">💬 Відповісти</button>
 
-    <!-- Форма подачі -->
+    <!-- Подати оголошення -->
     <div id="postForm" class="form-section">
       <label>Ім'я <span style="color:red">*</span></label>
-      <input type="text" id="userName" placeholder="Наприклад: Олена">
+      <input type="text" id="userName" placeholder="Наприклад: Марія" required>
 
       <label>Вік <span style="color:red">*</span></label>
-      <input type="number" id="userAge" min="18" max="99" placeholder="Від 18 до 99">
+      <input type="number" id="userAge" min="18" max="99" placeholder="Від 18 до 99" required>
 
       <label>Оголошення <span style="color:red">*</span></label>
-      <textarea id="postText" placeholder="Наприклад: Хлопець, 25 років, люблю кіно та прогулянки у Львові..."></textarea>
+      <textarea id="postText" placeholder="Наприклад: Дівчина, 24 роки, люблю подорожі та каву..."></textarea>
 
       <label>Хто цікавить <span style="color:red">*</span></label>
-      <select id="interestedIn">
+      <select id="interestedIn" required>
         <option value="">Оберіть...</option>
         <option value="male">Чоловік</option>
         <option value="female">Жінка</option>
@@ -106,7 +105,7 @@
       </select>
 
       <label>Який вік цікавить <span style="color:red">*</span></label>
-      <select id="ageRange" multiple>
+      <select id="ageRange" multiple required>
         <option value="18-22">18–22</option>
         <option value="23-30">23–30</option>
         <option value="31-40">31–40</option>
@@ -117,17 +116,17 @@
       <label>Фото (опціонально)</label>
       <input type="file" id="photoUpload" accept="image/*">
 
-      <button onclick="submitPost()" id="submitBtn">Надіслати оголошення</button>
+      <button onclick="submitPost()" id="submitBtn">Надіслати</button>
       <div id="postStatus" class="status"></div>
     </div>
 
-    <!-- Форма відповіді -->
+    <!-- Відповісти -->
     <div id="replyForm" class="form-section">
       <h3>💬 Відповісти на оголошення</h3>
       <p>Введіть ID оголошення (наприклад: <code>5NOD</code>):</p>
       <input type="text" id="postId" placeholder="ID оголошення">
       <textarea id="replyText" placeholder="Ваше повідомлення автору..."></textarea>
-      <button onclick="submitReply()" id="submitReplyBtn">Надіслати відгук</button>
+      <button onclick="submitReply()" id="submitReplyBtn">Надіслати</button>
       <div id="replyStatus" class="status"></div>
     </div>
   </div>
@@ -137,6 +136,7 @@
     WebApp.ready();
     WebApp.expand();
 
+    // ⚠️ Заміни на URL твого Web App у GAS (не міняй якщо такий самий)
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzme9bv5wLH9fPp091ou9JSs81ybQbfcMV4psC0nod4HngiMN4LXIotTbokJqIF97hw/exec';
 
     function showForm(type) {
@@ -144,29 +144,30 @@
       document.getElementById('replyForm').style.display = type === 'reply' ? 'block' : 'none';
     }
 
-    // Автоматичне заповнення ID, якщо Mini App відкрито з startapp=ID
+    // Автоматично заповнює ID, якщо Mini App відкрито через startapp=ID
     const urlParams = new URLSearchParams(window.location.search);
     const startAppId = urlParams.get('startapp');
     if (startAppId) {
       showForm('reply');
-      document.getElementById('postId').value = startAppId.trim();
+      document.getElementById('postId').value = startAppId.trim().toUpperCase();
       document.getElementById('replyText').focus();
     }
 
+    // ——————— Подати оголошення ———————
     async function submitPost() {
       const name = document.getElementById('userName').value.trim();
       const age = document.getElementById('userAge').value.trim();
       const text = document.getElementById('postText').value.trim();
       const interestedIn = document.getElementById('interestedIn').value;
       const ageRange = Array.from(document.getElementById('ageRange').selectedOptions)
-                            .map(opt => opt.value).join(', ');
+                            .map(o => o.value).join(', ');
       const photoInput = document.getElementById('photoUpload');
       const statusEl = document.getElementById('postStatus');
       const btn = document.getElementById('submitBtn');
 
       if (!name || !age || !text || !interestedIn || !ageRange) {
         statusEl.className = 'error';
-        statusEl.innerText = 'Заповніть усі обов’язкові поля.';
+        statusEl.innerText = 'Заповніть усі * обов’язкові поля.';
         return;
       }
       if (text.length < 10 || text.length > 500) {
@@ -178,7 +179,7 @@
       const userId = WebApp.initDataUnsafe?.user?.id;
       if (!userId) {
         statusEl.className = 'error';
-        statusEl.innerText = 'Не вдалося отримати ваш ID.';
+        statusEl.innerText = 'Помилка: немає user_id.';
         return;
       }
 
@@ -198,20 +199,17 @@
         const reader = new FileReader();
         reader.onload = () => {
           formData.append('photo_base64', reader.result.split(',')[1]);
-          sendPost(formData, statusEl, btn);
+          sendPostRequest(formData, statusEl, btn);
         };
         reader.readAsDataURL(photoInput.files[0]);
       } else {
-        sendPost(formData, statusEl, btn);
+        sendPostRequest(formData, statusEl, btn);
       }
     }
 
-    async function sendPost(formData, statusEl, btn) {
+    async function sendPostRequest(formData, statusEl, btn) {
       try {
-        const response = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: formData
-        });
+        const response = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
         const text = await response.text();
         if (text.includes('OK')) {
           statusEl.className = 'success';
@@ -221,36 +219,37 @@
         }
       } catch (e) {
         statusEl.className = 'error';
-        statusEl.innerText = 'Помилка: ' + (e.message || 'невідома');
+        statusEl.innerText = '❌ Помилка: ' + (e.message || 'невідома');
       } finally {
         btn.disabled = false;
       }
     }
 
+    // ——————— Відповісти ———————
     async function submitReply() {
-      const postId = document.getElementById('postId').value.trim();
+      const postId = document.getElementById('postId').value.trim().toUpperCase();
       const text = document.getElementById('replyText').value.trim();
       const statusEl = document.getElementById('replyStatus');
       const btn = document.getElementById('submitReplyBtn');
 
       if (!postId || !text || text.length > 500) {
         statusEl.className = 'error';
-        statusEl.innerText = 'Заповніть обидва поля (до 500 символів).';
+        statusEl.innerText = 'ID і текст обов’язкові (до 500 символів).';
         return;
       }
 
       const userId = WebApp.initDataUnsafe?.user?.id;
       if (!userId) {
         statusEl.className = 'error';
-        statusEl.innerText = 'Не вдалося отримати ваш ID.';
+        statusEl.innerText = 'Помилка: немає user_id.';
         return;
       }
 
       btn.disabled = true;
       statusEl.innerText = 'Надсилаємо...';
 
+      const url = `${SCRIPT_URL}?action=reply&user_id=${encodeURIComponent(userId)}&post_id=${encodeURIComponent(postId)}&reply_text=${encodeURIComponent(text)}`;
       try {
-        const url = `${SCRIPT_URL}?action=reply&user_id=${encodeURIComponent(userId)}&post_id=${encodeURIComponent(postId)}&reply_text=${encodeURIComponent(text)}`;
         const response = await fetch(url);
         const text = await response.text();
         if (text.includes('OK')) {
@@ -263,7 +262,7 @@
         }
       } catch (e) {
         statusEl.className = 'error';
-        statusEl.innerText = 'Помилка: ' + (e.message || 'невідома');
+        statusEl.innerText = '❌ Помилка: ' + (e.message || 'невідома');
       } finally {
         btn.disabled = false;
       }
