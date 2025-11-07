@@ -6,36 +6,95 @@
   <title>Flirt Keks</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; background: #f5f5f5; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    h2, h3 { color: #e74c3c; }
-    label { display: block; margin-top: 15px; font-weight: 600; }
-    textarea, input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; margin: 8px 0 4px; }
-    select[multiple] { height: 100px; }
-    textarea { height: 100px; resize: vertical; }
-    button { padding: 12px 24px; background: #e74c3c; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 10px; }
-    button:disabled { background: #bdc3c7; }
-    .form-section { display: none; padding: 15px; background: #f9f9f9; border-radius: 12px; margin-top: 15px; }
-    .status { margin-top: 10px; font-weight: bold; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h2, h3 {
+      color: #e74c3c;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+    textarea, input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      margin: 8px 0 4px;
+    }
+    select[multiple] {
+      height: 100px;
+    }
+    textarea {
+      height: 100px;
+      resize: vertical;
+    }
+    button {
+      padding: 12px 24px;
+      background: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:disabled {
+      background: #bdc3c7;
+    }
+    .form-section {
+      display: none;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 12px;
+      margin-top: 15px;
+    }
+    .status {
+      margin-top: 10px;
+      font-weight: bold;
+    }
     .success { color: #27ae60; }
     .error { color: #c0392b; }
-    code { background: #ecf0f1; padding: 2px 6px; border-radius: 4px; }
+    code {
+      background: #ecf0f1;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>🔐 Flirt Keks</h2>
     <p>Оберіть дію:</p>
+
     <button onclick="showForm('post')" style="width:48%">📝 Подати оголошення</button>
     <button onclick="showForm('reply')" style="width:48%">💬 Відповісти</button>
 
+    <!-- Подати оголошення -->
     <div id="postForm" class="form-section">
       <label>Ім'я <span style="color:red">*</span></label>
       <input type="text" id="userName" placeholder="Наприклад: Марія" required>
+
       <label>Вік <span style="color:red">*</span></label>
       <input type="number" id="userAge" min="18" max="99" placeholder="Від 18 до 99" required>
+
       <label>Оголошення <span style="color:red">*</span></label>
-      <textarea id="postText" placeholder="Наприклад: Дівчина, 24 роки..."></textarea>
+      <textarea id="postText" placeholder="Наприклад: Дівчина, 24 роки, люблю подорожі та каву..."></textarea>
+
       <label>Хто цікавить <span style="color:red">*</span></label>
       <select id="interestedIn" required>
         <option value="">Оберіть...</option>
@@ -44,6 +103,7 @@
         <option value="couple">Пара</option>
         <option value="any">Без різниці</option>
       </select>
+
       <label>Який вік цікавить <span style="color:red">*</span></label>
       <select id="ageRange" multiple required>
         <option value="18-22">18–22</option>
@@ -52,15 +112,17 @@
         <option value="41-50">41–50</option>
         <option value="50+">50+</option>
       </select>
+
       <button onclick="submitPost()" id="submitBtn">Надіслати</button>
       <div id="postStatus" class="status"></div>
     </div>
 
+    <!-- Відповісти -->
     <div id="replyForm" class="form-section">
       <h3>💬 Відповісти на оголошення</h3>
       <p>Введіть ID оголошення (наприклад: <code>5NOD</code>):</p>
       <input type="text" id="postId" placeholder="ID оголошення">
-      <textarea id="replyText" placeholder="Ваше повідомлення..."></textarea>
+      <textarea id="replyText" placeholder="Ваше повідомлення автору..."></textarea>
       <button onclick="submitReply()" id="submitReplyBtn">Надіслати</button>
       <div id="replyStatus" class="status"></div>
     </div>
@@ -71,56 +133,66 @@
     WebApp.ready();
     WebApp.expand();
 
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzFy46KO4ODjiPnaF4iOZQiTr-bleVWQO3OO-b8J3LT5SocreuRXWZ8kvEf7zryMJE/exec';
+    // ✅ URL GAS Web App (залиш без змін)
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwdusJAiXl5vsTiYI_vmZgMEpKAq9UntBK-bzF_me0ldzi3ily5atTi8cgeBQoztrMQ/exec';
 
     function showForm(type) {
       document.getElementById('postForm').style.display = type === 'post' ? 'block' : 'none';
       document.getElementById('replyForm').style.display = type === 'reply' ? 'block' : 'none';
     }
 
+    // ✅ Автоматичне заповнення ID з ?startapp=ID
     const urlParams = new URLSearchParams(window.location.search);
     const startAppId = urlParams.get('startapp');
     if (startAppId) {
       showForm('reply');
       document.getElementById('postId').value = startAppId.trim().toUpperCase();
+      document.getElementById('replyText').focus();
     }
 
+    // ————— Подати оголошення —————
     async function submitPost() {
       const name = document.getElementById('userName').value.trim();
       const age = document.getElementById('userAge').value.trim();
       const text = document.getElementById('postText').value.trim();
       const interestedIn = document.getElementById('interestedIn').value;
-      const ageRange = Array.from(document.getElementById('ageRange').selectedOptions).map(o => o.value).join(',');
+      const ageRange = Array.from(document.getElementById('ageRange').selectedOptions)
+                            .map(o => o.value).join(', ');
       const userId = WebApp.initDataUnsafe?.user?.id;
       const statusEl = document.getElementById('postStatus');
       const btn = document.getElementById('submitBtn');
 
       if (!name || !age || !text || !interestedIn || !ageRange) {
-        statusEl.className = 'error'; statusEl.innerText = 'Заповніть усі * поля.'; return;
+        statusEl.className = 'error';
+        statusEl.innerText = 'Заповніть усі * обов’язкові поля.';
+        return;
       }
       if (text.length < 10 || text.length > 500) {
-        statusEl.className = 'error'; statusEl.innerText = 'Текст: 10–500 символів.'; return;
+        statusEl.className = 'error';
+        statusEl.innerText = 'Текст: 10–500 символів.';
+        return;
       }
       if (!userId) {
-        statusEl.className = 'error'; statusEl.innerText = 'Помилка: немає user_id.'; return;
+        statusEl.className = 'error';
+        statusEl.innerText = 'Помилка: немає user_id.';
+        return;
       }
 
       btn.disabled = true;
       statusEl.innerText = 'Надсилаємо...';
 
-      const params = new URLSearchParams({
-        action: 'post',
-        user_id: userId,
-        name,
-        age,
-        text,
-        interested_in: interestedIn,
-        age_range: ageRange
-      });
+      const formData = new FormData();
+      formData.append('action', 'post');
+      formData.append('user_id', userId);
+      formData.append('name', name);
+      formData.append('age', age);
+      formData.append('text', text);
+      formData.append('interested_in', interestedIn);
+      formData.append('age_range', ageRange);
 
       try {
-        const res = await fetch(`${SCRIPT_URL}?${params}`);
-        const text = await res.text();
+        const response = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
+        const text = await response.text();
         if (text.includes('OK')) {
           statusEl.className = 'success';
           statusEl.innerText = '✅ Оголошення надіслано!';
@@ -135,6 +207,7 @@
       }
     }
 
+    // ————— Відповісти —————
     async function submitReply() {
       const postId = document.getElementById('postId').value.trim().toUpperCase();
       const replyText = document.getElementById('replyText').value.trim();
@@ -143,25 +216,28 @@
       const btn = document.getElementById('submitReplyBtn');
 
       if (!postId || !replyText || replyText.length > 500) {
-        statusEl.className = 'error'; statusEl.innerText = 'Заповніть ID і текст.'; return;
+        statusEl.className = 'error';
+        statusEl.innerText = 'ID і текст обов’язкові (до 500 символів).';
+        return;
       }
       if (!userId) {
-        statusEl.className = 'error'; statusEl.innerText = 'Помилка: немає user_id.'; return;
+        statusEl.className = 'error';
+        statusEl.innerText = 'Помилка: немає user_id.';
+        return;
       }
 
       btn.disabled = true;
       statusEl.innerText = 'Надсилаємо...';
 
-      const params = new URLSearchParams({
-        action: 'reply',
-        user_id: userId,
-        post_id: postId,
-        reply_text: replyText
-      });
+      const formData = new FormData();
+      formData.append('action', 'reply');
+      formData.append('user_id', userId);
+      formData.append('post_id', postId);
+      formData.append('reply_text', replyText);
 
       try {
-        const res = await fetch(`${SCRIPT_URL}?${params}`);
-        const text = await res.text();
+        const response = await fetch(SCRIPT_URL, { method: 'POST', body: formData });
+        const text = await response.text();
         if (text.includes('OK')) {
           statusEl.className = 'success';
           statusEl.innerText = '✅ Відгук надіслано!';
