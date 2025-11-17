@@ -68,5 +68,10 @@ def reject_post(call):
     bot.edit_message_text("❌ Відхилено", call.message.chat.id, call.message.message_id)
     del pending_posts[post_id]
 
+# Додай головний шлях, щоб сервер працював
+@app.route('/')
+def home():
+    return "Server is running! Use /tilda-webhook for webhooks."
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
