@@ -18,29 +18,29 @@ pending_posts = {}
 def home():
     return "Server is running! Use /tilda-webhook for webhooks.", 200
 
-@app.route('/tilda-webhook', methods=['GET', 'POST', 'HEAD', 'OPTIONS'])
+@app.route('/health', methods=['GET', 'POST', 'HEAD', 'OPTIONS'])
+def health_check():
+    return "", 200  # Відповідаємо порожнім тілом і статусом 200 — Tilda буде задоволена
+
+@app.route('/tilda-webhook', methods=['POST'])
 def tilda_webhook():
-    if request.method in ['GET', 'HEAD', 'OPTIONS']:
-        return "", 200  # Відповідаємо порожнім тілом і статусом 200 — Tilda буде задоволена
+    data = request.json
+    if not data:
+        return "No data", 400
 
-    elif request.method == 'POST':
-        data = request.json
-        if not data:
-            return "No data", 400
+    post_id = len(pending_posts) + 1
+    pending_posts[post_id] = data
 
-        post_id = len(pending_posts) + 1
-        pending_posts[post_id] = data
+    formatted_text = format_post(data)
 
-        formatted_text = format_post(data)
+    markup = types.InlineKeyboardMarkup()
+    approve_btn = types.InlineKeyboardButton("✅ Підтвердити", callback_data=f"approve_{post_id}")
+    reject_btn = types.InlineKeyboardButton("❌ Відхилити", callback_data=f"reject_{post_id}")
+    markup.add(approve_btn, reject_btn)
 
-        markup = types.InlineKeyboardMarkup()
-        approve_btn = types.InlineKeyboardButton("✅ Підтвердити", callback_data=f"approve_{post_id}")
-        reject_btn = types.InlineKeyboardButton("❌ Відхилити", callback_data=f"reject_{post_id}")
-        markup.add(approve_btn, reject_btn)
+    bot.send_message(MODERATOR_CHAT_ID, f"Нове оголошення:\n\n{formatted_text}", reply_markup=markup)
 
-        bot.send_message(MODERATOR_CHAT_ID, f"Нове оголошення:\n\n{formatted_text}", reply_markup=markup)
-
-        return "OK", 200
+    return "OK", 200
 
 def format_post(data):
     text = f"""
