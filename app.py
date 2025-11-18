@@ -14,14 +14,6 @@ app = Flask(__name__)
 
 pending_posts = {}
 
-@app.route('/')
-def home():
-    return "Server is running! Use /tilda-webhook for webhooks.", 200
-
-@app.route('/health', methods=['GET', 'POST', 'HEAD', 'OPTIONS'])
-def health_check():
-    return "", 200  # Відповідаємо порожнім тілом і статусом 200 — Tilda буде задоволена
-
 @app.route('/tilda-webhook', methods=['POST'])
 def tilda_webhook():
     data = request.json
@@ -33,12 +25,7 @@ def tilda_webhook():
 
     formatted_text = format_post(data)
 
-    markup = types.InlineKeyboardMarkup()
-    approve_btn = types.InlineKeyboardButton("✅ Підтвердити", callback_data=f"approve_{post_id}")
-    reject_btn = types.InlineKeyboardButton("❌ Відхилити", callback_data=f"reject_{post_id}")
-    markup.add(approve_btn, reject_btn)
-
-    bot.send_message(MODERATOR_CHAT_ID, f"Нове оголошення:\n\n{formatted_text}", reply_markup=markup)
+    bot.send_message(MODERATOR_CHAT_ID, f"Нове оголошення:\n\n{formatted_text}")
 
     return "OK", 200
 
@@ -56,25 +43,32 @@ def format_post(data):
         text += f"\nКонтакт: анонімно"
     return text
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith("approve_"))
-def approve_post(call):
-    post_id = int(call.data.split("_")[1])
-    data = pending_posts[post_id]
-    formatted_text = format_post(data)
+@bot.message_handler(commands=['approve'])
+def approve_post(message):
+    # Тут ми будемо шукати останнє оголошення і публікувати його
+    if pending_posts:
+        post_id = max(pending_posts.keys())
+        data = pending_posts[post_id]
+        formatted_text = format_post(data)
 
-    if CHANNEL_ID:
-        bot.send_message(CHANNEL_ID, formatted_text)
+        if CHANNEL_ID:
+            bot.send_message(CHANNEL_ID, formatted_text)
+        else:
+            bot.send_message(MODERATOR_CHAT_ID, f"Опубліковано:\n\n{formatted_text}")
+
+        del pending_posts[post_id]
+        bot.reply_to(message, "✅ Оголошення опубліковано!")
     else:
-        bot.send_message(MODERATOR_CHAT_ID, f"Опубліковано:\n\n{formatted_text}")
+        bot.reply_to(message, "❌ Немає оголошень для підтвердження.")
 
-    bot.edit_message_text("✅ Підтверджено та опубліковано", call.message.chat.id, call.message.message_id)
-    del pending_posts[post_id]
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith("reject_"))
-def reject_post(call):
-    post_id = int(call.data.split("_")[1])
-    bot.edit_message_text("❌ Відхилено", call.message.chat.id, call.message.message_id)
-    del pending_posts[post_id]
+@bot.message_handler(commands=['reject'])
+def reject_post(message):
+    if pending_posts:
+        post_id = max(pending_posts.keys())
+        del pending_posts[post_id]
+        bot.reply_to(message, "❌ Оголошення видалено.")
+    else:
+        bot.reply_to(message, "❌ Немає оголошень для відхилення.")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
