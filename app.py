@@ -18,15 +18,14 @@ pending_posts = {}
 def home():
     return "Server is running! Use /tilda-webhook for webhooks.", 200
 
-@app.route('/tilda-webhook', methods=['GET', 'POST', 'HEAD'])
+@app.route('/tilda-webhook', methods=['GET', 'POST', 'HEAD', 'OPTIONS'])
 def tilda_webhook():
-    if request.method == 'HEAD':
-        return "", 200  # Відповідаємо порожнім тілом і статусом 200
-    elif request.method == 'GET':
-        return "Webhook is ready for POST requests", 200
+    if request.method in ['GET', 'HEAD', 'OPTIONS']:
+        return "", 200  # Відповідаємо порожнім тілом і статусом 200 — Tilda буде задоволена
+
     elif request.method == 'POST':
         data = request.json
-        if not data:  # 👈 Це виправлено — тепер правильно
+        if not data:
             return "No data", 400
 
         post_id = len(pending_posts) + 1
