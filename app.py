@@ -26,7 +26,7 @@ def tilda_webhook():
         return "Webhook is ready for POST requests", 200
     elif request.method == 'POST':
         data = request.json
-        if not 
+        if not data:  # 👈 Це виправлено — тепер правильно
             return "No data", 400
 
         post_id = len(pending_posts) + 1
