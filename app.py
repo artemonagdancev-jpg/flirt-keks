@@ -72,6 +72,28 @@ def reject_post(call):
 @app.route('/')
 def home():
     return "Server is running! Use /tilda-webhook for webhooks."
+@app.route('/tilda-webhook', methods=['GET', 'POST'])
+def tilda_webhook():
+    if request.method == 'GET':
+        return "Webhook is ready for POST requests", 200
+    elif request.method == 'POST':
+        data = request.json
+        if not data:
+            return "No data", 400
+
+        post_id = len(pending_posts) + 1
+        pending_posts[post_id] = data
+
+        formatted_text = format_post(data)
+
+        markup = types.InlineKeyboardMarkup()
+        approve_btn = types.InlineKeyboardButton("✅ Підтвердити", callback_data=f"approve_{post_id}")
+        reject_btn = types.InlineKeyboardButton("❌ Відхилити", callback_data=f"reject_{post_id}")
+        markup.add(approve_btn, reject_btn)
+
+        bot.send_message(MODERATOR_CHAT_ID, f"Нове оголошення:\n\n{formatted_text}", reply_markup=markup)
+
+        return "OK", 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
