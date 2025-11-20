@@ -1,0 +1,14 @@
+version: "3.8"
+services:
+  bot:
+    build: .
+    volumes:
+      - ./:/app
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+      - CHANNEL_ID=${CHANNEL_ID}
+      - MODERATOR_CHAT_ID=${MODERATOR_CHAT_ID}
+      - BOT_USERNAME=${BOT_USERNAME}
+      - DB_PATH=/app/bot.db
+    ports:
+      - "8000:8000"
